@@ -16,7 +16,7 @@
             <div class="flex justify-between items-center py-4">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <img src="{{ asset('images/health-bridge-logo.png') }}" alt="HealthBridge" class="h-10">
+                    <img src="{{ asset('images/HealthBridgeLogo.png') }}" alt="HealthBridge" style="height: 40px;" >
                 </div>
 
                 <!-- Search and User Info -->
@@ -36,11 +36,11 @@
                     </div>
 
 
-                    <!-- Admin Profile -->
+                    <!-- Lab Profile -->
                     <div class="relative" x-data="{ open: false }">
                         <div class="flex flex-col items-center pointer-events-auto" @click="open = !open">
-                            <img src="{{ asset('images/icon1.png') }}" alt="Admin">
-                            <span class="text-sm text-gray-700">Admin</span>
+                            <img src="{{ asset('images/icon1.png') }}" alt="Lab">
+                            <span class="text-sm text-gray-700">Lab</span>
                         </div>
 
                         <div x-show="open"
@@ -72,36 +72,39 @@
             <!-- Dashboard Link -->
             <a href="{{ route('Lab.dashboard') }}"
                class="flex items-center space-x-2 px-4 py-4 {{ request()->routeIs('Lab.dashboard') ? 'bg-purple-900' : 'hover:bg-purple-700' }}">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <img src="{{ asset('images/dashboard.png') }}" alt="Dashboard" style="width: 20px;" >
+                {{-- <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
+                </svg> --}}
                 <span class="font-semibold">Dashboard</span>
             </a>
 
             <!-- Manage Claims Section -->
             <div class="mt-6">
-                <div class="px-4 py-2 text-sm font-medium text-purple-200">Manage Claims</div>
                 <div class="space-y-1">
-                    <a href="{{ route('admin.request-claim') }}"
-                       class="flex items-center space-x-2 px-4 py-2 {{ request()->routeIs('admin.request-claim') ? 'bg-purple-900' : 'hover:bg-purple-700' }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{{ route('Lab.patient_list') }}"
+                       class="flex items-center space-x-2 px-4 py-2 {{ request()->routeIs('Lab.patient_list') ? 'bg-purple-900' : 'hover:bg-purple-700' }}">
+                       <img src="{{ asset('images/patient.png') }}" alt="patient" style="width: 20px;" >
+                       {{-- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        <span>Request Claim</span>
+                        </svg> --}}
+                        <span>Patient List</span>
                     </a>
-                    <a href="{{ route('admin.approved-claims') }}"
-                       class="flex items-center space-x-2 px-4 py-2 {{ request()->routeIs('admin.approved-claims') ? 'bg-purple-900' : 'hover:bg-purple-700' }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{{ route('Lab.upload_reports') }}"
+                       class="flex items-center space-x-2 px-4 py-2 {{ request()->routeIs('Lab.upload_reports') ? 'bg-purple-900' : 'hover:bg-purple-700' }}">
+                       <img src="{{ asset('images/medical-reports.png') }}" alt="report" style="width: 20px;" >
+                       {{-- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span>Approved Claims</span>
+                        </svg> --}}
+                        <span>Upload Reports</span>
                     </a>
-                    <a href="{{ route('admin.rejected-claims') }}"
-                       class="flex items-center space-x-2 px-4 py-2 {{ request()->routeIs('admin.rejected-claims') ? 'bg-purple-900' : 'hover:bg-purple-700' }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{{ route('Lab.upload_bills') }}"
+                       class="flex items-center space-x-2 px-4 py-2 {{ request()->routeIs('Lab.upload_bills') ? 'bg-purple-900' : 'hover:bg-purple-700' }}">
+                       <img src="{{ asset('images/bill.png') }}" alt="bill" style="width: 20px;" >
+                       {{-- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                        <span>Rejected Claims</span>
+                        </svg> --}}
+                        <span>Upload Bills</span>
                     </a>
                 </div>
             </div>

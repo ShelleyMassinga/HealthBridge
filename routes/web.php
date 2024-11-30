@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NavigationController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\LabController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,13 @@ Route::prefix('admin')->group(function () {
     Route::get('/request-claim', [AdminController::class, 'requestClaim'])->name('admin.request-claim');
     Route::get('/approved-claims', [AdminController::class, 'approvedClaims'])->name('admin.approved-claims');
     Route::get('/rejected-claims', [AdminController::class, 'rejectedClaims'])->name('admin.rejected-claims');
+});
+
+Route::prefix('lab')->group(function(){
+    Route::get('/dashboard', [LabController::class, 'dashboard'])->name('Lab.dashboard');
+    Route::get('/patient_list', [LabController::class, 'patient_list'])->name('Lab.patient_list');
+    Route::get('/upload_reports', [LabController::class, 'upload_reports'])->name('Lab.upload_reports');
+    Route::get('/upload_bills', [LabController::class, 'upload_bills'])->name('Lab.upload_bills');
 });
 
 Route::post('/logout', function () {

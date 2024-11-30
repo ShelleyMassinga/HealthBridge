@@ -19,4 +19,16 @@ class LabController extends Controller
     {
         return view('Lab.dashboard');
     }
+    public function patient_list()
+    {
+        return view('Lab.patient_list');
+    }
+    public function upload_reports()
+    {
+        return view('Lab.upload_reports');
+    }
+    public function upload_bills()
+    {
+        return view('Lab.upload_bills');
+    }
 }
