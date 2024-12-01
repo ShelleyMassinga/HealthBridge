@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NavigationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\LabController;
+use App\Http\Controllers\Auth\LoginController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -20,8 +23,18 @@ use App\Http\Controllers\LabController;
 //     return view('welcome');
 // });
 
+Auth::routes();
+
+//Route::get('/login','LoginController@showLoginForm')->name('login');
+//Route::post('/admin/dashboard','LoginController@login')->name('login.submit');
+
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/admin/dashboard', [LoginController::class, 'login'])->name('login.submit');
+
+
+
 Route::get('/', [NavigationController::class, 'home'])->name('home');
-Route::get('/login', [NavigationController::class, 'login'])->name('login');
+Route::post('/login', [NavigationController::class, 'login'])->name('login');
 Route::get('/signup', [NavigationController::class, 'signup'])->name('signup');
 
 // Route::prefix('admin')->middleware(['auth'])->group(function () { removed middleware for testing
