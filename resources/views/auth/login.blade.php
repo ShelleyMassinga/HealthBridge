@@ -50,7 +50,8 @@
 {{--@endsection--}}
 
 
-    <!DOCTYPE html>
+{{--CSRF (Cross-Site Request Forgery) protection is required whenever you handle state-changing requests (e.g., POST, PUT, PATCH, DELETE) to prevent unauthorized actions.--}}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -107,11 +108,11 @@
 {{--                </div>--}}
 
 
-                <button type="submit" class="btn custom-btn w-100">{{ __('Login') }}</button>
+                <button type="submit" class="btn custom-btn w-50">{{ __('Login') }}</button>
 
                     <div class="text-center mt-3">
                         <p class="custom-text">
-                            Not registered yet? <a href="{{ route('Lab.upload_reports') }}" class="custom-signup-link">Create an account</a>
+                            Not registered yet? <a href="{{ route('register') }}" class="custom-signup-link">Create an account</a>
                         </p>
                     </div>
             </form>
