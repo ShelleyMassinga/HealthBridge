@@ -1,9 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\NavigationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\LabController;
+use App\Http\Controllers\Auth\LoginController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -20,8 +24,18 @@ use App\Http\Controllers\LabController;
 //     return view('welcome');
 // });
 
+Auth::routes();
+
+//Route::get('/login','LoginController@showLoginForm')->name('login');
+//Route::post('/admin/dashboard','LoginController@login')->name('login.submit');
+
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/admin/dashboard', [LoginController::class, 'login'])->name('login.submit');
+
+
+
 Route::get('/', [NavigationController::class, 'home'])->name('home');
-Route::get('/login', [NavigationController::class, 'login'])->name('login');
+Route::post('/login', [NavigationController::class, 'login'])->name('login');
 Route::get('/signup', [NavigationController::class, 'signup'])->name('signup');
 
 // Route::prefix('admin')->middleware(['auth'])->group(function () { removed middleware for testing
@@ -35,8 +49,11 @@ Route::prefix('admin')->group(function () {
 Route::prefix('lab')->group(function(){
     Route::get('/dashboard', [LabController::class, 'dashboard'])->name('Lab.dashboard');
     Route::get('/patient_list', [LabController::class, 'patient_list'])->name('Lab.patient_list');
-    Route::get('/upload_reports', [LabController::class, 'upload_reports'])->name('Lab.upload_reports');
-    Route::get('/upload_bills', [LabController::class, 'upload_bills'])->name('Lab.upload_bills');
+    Route::post('/patient_list', [LabController::class, 'markAsDone'])->name('Lab.patient_list.markAsDone');
+    Route::get('/upload_reports', [LabController::class, 'upload_reports_view'])->name('Lab.upload_reports_view');
+    Route::post('/uploadreports', [LabController::class, 'uploadReport'])->name('upload.report');
+    Route::get('/upload_bills', [LabController::class, 'upload_bills_view'])->name('Lab.upload_bills_view');
+    Route::post('/upload_bills', [LabController::class, 'uploadBill'])->name('upload.bill');
 });
 
 Route::post('/logout', function () {
