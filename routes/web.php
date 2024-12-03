@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\InsuranceController;
 
 
 
@@ -39,9 +40,13 @@ Route::post('/insurance/dashboard', [LoginController::class, 'login'])->name('lo
 Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
 
 
-//Route::post('/Lab/dashboard', [RegisterController::class, 'register_insurance'])->name('insuranceRegister.submit');
+Route::post('/admin/dashboard', [RegisterController::class, 'register_insurance'])->name('insuranceRegister.submit');
+Route::post('/Lab/dashboard', [RegisterController::class, 'register_lab'])->name('labRegister.submit');
 
-Route::post('/register/insurance', [RegisterController::class, 'register_insurance'])->name('insuranceRegister.submit');
+Route::get('/api/login-ids', function () {
+    // Fetch all the Login_IDs from the credentials table
+    return response()->json(\DB::table('credentials')->pluck('Login_ID'));
+});
 
 
 
@@ -67,6 +72,18 @@ Route::prefix('lab')->group(function(){
     Route::get('/upload_bills', [LabController::class, 'upload_bills_view'])->name('Lab.upload_bills_view');
     Route::post('/upload_bills', [LabController::class, 'uploadBill'])->name('upload.bill');
 });
+
+
+
+
+Route::prefix('insurance')->group(function () {
+    Route::get('/claim', [InsuranceController::class, 'claim_list'])->name('Insurance.claim');
+    Route::post('/claim', [InsuranceController::class, 'updateApprovalStatus'])->name('Insurance.claim.update');
+    Route::post('/claim/download', [InsuranceController::class, 'downloadFile'])->name('Insurance.claim.download');
+
+
+});
+
 
 Route::post('/logout', function () {
     // Auth::logout(); commented out for testing
