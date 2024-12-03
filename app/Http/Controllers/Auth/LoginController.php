@@ -51,7 +51,7 @@ class LoginController extends Controller
             $pass = $_POST['Log_Password'];
 
 //            $sql = DB::select( "SELECT * FROM credentials WHERE (Login_ID = ? AND Log_Password = ?) LIMIT 1",[$logid,$pass]);
-
+//Query builder prevents SQL injection
             $sql = DB::table('credentials')
                 ->where('Login_ID', $logid)
                 ->where('Log_Password', $pass)
