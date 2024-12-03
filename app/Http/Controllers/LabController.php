@@ -25,19 +25,27 @@ class LabController extends Controller
     {
         $id = 1;
         // Fetch data for a specific LabID
-        $patients = DB::table('Appointments')
-                ->join('Patient', 'Appointments.PatientID', '=', 'Patient.PatientID')
-                ->join('Lab_Test', 'Appointments.TestID', '=', 'Lab_Test.TestID')
-                ->select(
-                    'Patient.Pt_Name as Patient_Name',
-                    'Patient.Phone_no as Phone_Number',
-                    'Appointments.Test_Status as Test_Status',
-                    'Lab_Test.Test_name as Test_Name',
-                    'Appointments.App_Date as Appointment_Date',
-                    'Appointments.AppointmentID as Appointment_ID'
-                )
-                ->where('LabID', $id)
-                ->get();
+        // $patients = DB::table('Appointments')
+        //         ->join('Patient', 'Appointments.PatientID', '=', 'Patient.PatientID')
+        //         ->join('Lab_Test', 'Appointments.TestID', '=', 'Lab_Test.TestID')
+        //         ->select(
+        //             'Patient.Pt_Name as Patient_Name',
+        //             'Patient.Phone_no as Phone_Number',
+        //             'Appointments.Test_Status as Test_Status',
+        //             'Lab_Test.Test_name as Test_Name',
+        //             'Appointments.App_Date as Appointment_Date',
+        //             'Appointments.AppointmentID as Appointment_ID'
+        //         )
+        //         ->where('LabID', $id)
+        //         ->get();
+
+        // Call the stored procedure
+        $patients = collect(DB::select('CALL GetPatientDetails(?, ?, ?)', [
+            $id,
+            NULL,
+            TRUE
+        ]));
+
 
         return view('Lab.patient_list',['patients'=> $patients]);
     }
@@ -200,20 +208,25 @@ class LabController extends Controller
         // Fetch patients whose names match the search query
         if($page == "Patient_list")
         {
-            $patients = DB::table('Appointments')
-                ->join('Patient', 'Appointments.PatientID', '=', 'Patient.PatientID')
-                ->join('Lab_Test', 'Appointments.TestID', '=', 'Lab_Test.TestID')
-                ->select(
-                    'Patient.Pt_Name as Patient_Name',
-                    'Patient.Phone_no as Phone_Number',
-                    'Appointments.Test_Status as Test_Status',
-                    'Lab_Test.Test_name as Test_Name',
-                    'Appointments.App_Date as Appointment_Date',
-                    'Appointments.AppointmentID as Appointment_ID'
-                )
-                ->where('Patient.Pt_Name', 'like', '%' . $query . '%')
-                ->where('LabID', $id)
-                ->get();
+            $patients = collect(DB::select('CALL GetPatientDetails(?, ?, ?)', [
+                $id,
+                $query,
+                TRUE
+            ]));
+            // $patients = DB::table('Appointments')
+            //     ->join('Patient', 'Appointments.PatientID', '=', 'Patient.PatientID')
+            //     ->join('Lab_Test', 'Appointments.TestID', '=', 'Lab_Test.TestID')
+            //     ->select(
+            //         'Patient.Pt_Name as Patient_Name',
+            //         'Patient.Phone_no as Phone_Number',
+            //         'Appointments.Test_Status as Test_Status',
+            //         'Lab_Test.Test_name as Test_Name',
+            //         'Appointments.App_Date as Appointment_Date',
+            //         'Appointments.AppointmentID as Appointment_ID'
+            //     )
+            //     ->where('Patient.Pt_Name', 'like', '%' . $query . '%')
+            //     ->where('LabID', $id)
+            //     ->get();
         }
         else if($page == "Upload_reports")
         {
