@@ -46,7 +46,7 @@ class InsuranceController extends Controller
                 'appointments.AppointmentID' // Fetch AppointmentID
             )
             ->where('claim.Filing_status', '=', 'Filled') // Filter by Filing_status = 'Filled'
-            //->where('claim.InsuranceID', $insuranceId) // Filter by InsuranceID
+            ->where('claim.InsuranceID', $insuranceId) // Filter by InsuranceID
             ->get();
 
         // Pass the claims data to the Blade view

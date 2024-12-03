@@ -51,7 +51,7 @@ Route::get('/api/login-ids', function () {
 
 Route::get('/', [NavigationController::class, 'home'])->name('home');
 Route::post('/login', [NavigationController::class, 'login'])->name('login');
-//Route::get('/signup', [NavigationController::class, 'signup'])->name('signup');
+Route::get('/signup', [NavigationController::class, 'signup'])->name('signup');
 
 // Route::prefix('admin')->middleware(['auth'])->group(function () { removed middleware for testing
 Route::prefix('admin')->group(function () {
