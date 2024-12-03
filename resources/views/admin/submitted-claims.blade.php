@@ -3,7 +3,13 @@
 @section('content')
 <div class="p-6">
     <div class="max-w-6xl mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Approved Claims</h2>
+        <h2 class="text-2xl font-semibold mb-6">Submitted Claims</h2>
+
+        @if(session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                {{ session('success') }}
+            </div>
+        @endif
 
         <div class="bg-white rounded-lg shadow">
             <div class="overflow-x-auto">
@@ -17,16 +23,13 @@
                                 Patient Name
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Lab Name
+                                Filing Status
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
+                                Approval Status
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 File
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Action
                             </th>
                         </tr>
                     </thead>
@@ -40,11 +43,13 @@
                                     {{ $claim->Pt_Name }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    {{ $claim->Lab_Name }}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        {{ $claim->Filing_status }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Approved
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $claim->Approval_status == 'None' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800' }}">
+                                        {{ $claim->Approval_status }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -54,16 +59,11 @@
                                         View File
                                     </a>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <button class="bg-purple-800 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-                                        Send to Patient
-                                    </button>
-                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                    No approved claims found
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                    No claims found
                                 </td>
                             </tr>
                         @endforelse

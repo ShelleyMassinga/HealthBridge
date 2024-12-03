@@ -32,8 +32,8 @@
                 label: 'Claims',
                 data: [65, 60, 80, 81, 58, 55, 40],
                 fill: true,
-                borderColor: '#4B0082',
-                backgroundColor: 'rgba(75, 0, 130, 0.1)',
+                borderColor: '#0ea5e9',
+                backgroundColor: '#bae6fd',
                 tension: 0.4,
                 pointRadius: 4,
                 borderWidth: 2
@@ -90,8 +90,8 @@
                 label: 'Accepted Claims',
                 data: [45, 48, 60, 70, 45, 45, 30],
                 fill: true,
-                borderColor: '#22C55E',
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                borderColor: '#a3e635',
+                backgroundColor: '#ecfccb',
                 tension: 0.4,
                 pointRadius: 4,
                 borderWidth: 2

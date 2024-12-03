@@ -35,3 +35,6 @@ Route::post('/logout', function () {
     // Auth::logout(); commented out for testing
     return redirect()->route('login');
 })->name('logout');
+
+Route::post('/admin/submit-claim', [AdminController::class, 'submitClaim'])->name('admin.submit-claim');
+Route::get('/admin/submitted-claims', [AdminController::class, 'submittedClaims'])->name('admin.submitted-claims');
