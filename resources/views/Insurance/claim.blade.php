@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Insurance Claims</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="{{ asset('css/insurance.css') }}">
 </head>
 <body>
@@ -41,31 +42,43 @@
                             <td>{{ $claim->Lab_Name }}</td>
                             <td>{{ $claim->Pt_Name }}</td>
                             <td>
-                                <a href="{{ Storage::url($claim->Claim_File) }}" target="_blank">Download</a>
+{{--                                <a--}}
+{{--                                    href="#"--}}
+{{--                                    class="download-btn"--}}
+{{--                                    data-appointment-id="{{ $claim->AppointmentID }}"--}}
+{{--                                    data-patient-id="{{ $claim->PatientID }}"--}}
+{{--                                    data-lab-id="{{ $claim->LabID }}"--}}
+{{--                                >--}}
+{{--                                    Download--}}
+{{--                                </a>--}}
+                                <form method="POST" action="{{ route('Insurance.claim.download') }}" style="display:inline;">
+                                    @csrf
+                                    <input type="hidden" name="AppointmentID" value="{{ $claim->AppointmentID }}">
+                                    <input type="hidden" name="PatientID" value="{{ $claim->PatientID }}">
+                                    <input type="hidden" name="LabID" value="{{ $claim->LabID }}">
+                                    <button type="submit" class="btn btn-link">Download</button>
+                                </form>
+
                             </td>
                             <td id="status-{{ $claim->ClaimID }}">{{ ucfirst($claim->Approval_status ?? 'Pending') }}</td>
                             <td>
                                 @if ($claim->Approval_status === 'None')
-                                    <form method="POST" action="{{ route('Insurance.claim.update') }}" enctype="multipart/form-data">
+                                    <form method="POST" action="{{ route('Insurance.claim.update') }}" id="claimForm-{{ $claim->ClaimID }}">
                                         @csrf
-                                        <!-- Hidden input to pass ClaimID -->
-
-                                        <!-- Hidden inputs for ClaimID, PatientID, LabID, and AppointmentID -->
+                                        <!-- Hidden inputs for ClaimID and additional data -->
                                         <input type="hidden" name="ClaimID" value="{{ $claim->ClaimID }}">
-                                        <input type="hidden" name="PatientID" value="{{ $claim->PatientID }}">
-                                        <input type="hidden" name="LabID" value="{{ $claim->LabID }}">
-                                        <input type="hidden" name="AppointmentID" value="{{ $claim->AppointmentID }}">
+{{--                                        <input type="hidden" name="PatientID" value="{{ $claim->PatientID }}">--}}
+{{--                                        <input type="hidden" name="LabID" value="{{ $claim->LabID }}">--}}
+{{--                                        <input type="hidden" name="AppointmentID" value="{{ $claim->AppointmentID }}">--}}
+                                        <input type="hidden" name="Reason_for_rejection" class="hidden-reason-field">
 
                                         <div class="d-flex align-items-center">
                                             <!-- Dropdown for selecting Accept or Reject -->
                                             <select class="form-select me-2 action-select" name="action" required>
                                                 <option value="">Select Action</option>
-                                                <option value="accept">Accept</option>
-                                                <option value="reject">Reject</option>
+                                                <option value="accept">Approve</option>
+                                                <option value="reject" data-claim-id="{{ $claim->ClaimID }}">Reject</option>
                                             </select>
-
-                                            <!-- File input for rejection reason -->
-                                            <input type="file" name="rejection_file" class="form-control rejection-file" style="display: none;" accept=".pdf,.jpg,.png">
 
                                             <!-- Submit button -->
                                             <button type="submit" class="btn custom-btn-claim">Submit</button>
@@ -85,44 +98,82 @@
     </div>
 </div>
 
-<!-- Popup for Reject -->
+<!-- Modal for Reject -->
+<!-- Modal for Reject -->
 <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="rejectForm" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="rejectModalLabel">Reason for Rejection</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="file" name="rejection_file" id="rejectionFile" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger">Submit</button>
-                </div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Reason for Rejection</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </form>
+            <div class="modal-body">
+                <textarea class="form-control" id="rejectionReason" placeholder="Enter reason for rejection" required></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary save-reason-btn">Submit</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const actionSelects = document.querySelectorAll('.action-select');
+        const rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
+        const rejectionReasonTextarea = document.getElementById('rejectionReason');
+        const saveReasonBtn = document.querySelector('.save-reason-btn');
+        let currentForm = null;
 
+        // Trigger modal for rejection
         actionSelects.forEach(select => {
             select.addEventListener('change', function () {
-                const fileInput = this.closest('form').querySelector('.rejection-file');
-                if (this.value === 'reject') {
-                    fileInput.style.display = 'block'; // Show file input
-                    fileInput.required = true; // Make file input required
-                } else {
-                    fileInput.style.display = 'none'; // Hide file input
-                    fileInput.required = false; // Remove required attribute
+                const selectedValue = this.value;
+                const claimFormId = this.closest('form').id;
+
+                if (selectedValue === 'reject') {
+                    currentForm = document.getElementById(claimFormId);
+                    rejectionReasonTextarea.value = ''; // Clear previous input
+                    rejectModal.show();
+                }
+            });
+        });
+
+        // Save reason for rejection
+        saveReasonBtn.addEventListener('click', function () {
+            const reason = rejectionReasonTextarea.value.trim();
+
+            if (!reason) {
+                alert('Please provide a reason for rejection.');
+                return;
+            }
+
+            if (currentForm) {
+                // Set the hidden reason field
+                const hiddenReasonField = currentForm.querySelector('.hidden-reason-field');
+                hiddenReasonField.value = reason;
+
+                // Close the modal
+                rejectModal.hide();
+
+                // Submit the form
+                currentForm.submit();
+            }
+        });
+
+        // Close modal if user cancels
+        const closeModalButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Reset the action select to default
+                if (currentForm) {
+                    const actionSelect = currentForm.querySelector('.action-select');
+                    actionSelect.selectedIndex = 0;
                 }
             });
         });
     });
+
 </script>
 
 <script>
@@ -177,6 +228,49 @@
     });
 
 </script>
+{{--<script>--}}
+{{--    document.addEventListener('DOMContentLoaded', function () {--}}
+{{--        const downloadButtons = document.querySelectorAll('.download-btn');--}}
+
+{{--        downloadButtons.forEach(button => {--}}
+{{--            button.addEventListener('click', function (event) {--}}
+{{--                event.preventDefault(); // Prevent default link behavior--}}
+
+{{--                // Fetch hidden fields--}}
+{{--                const appointmentId = this.dataset.appointmentId;--}}
+{{--                const patientId = this.dataset.patientId;--}}
+{{--                const labId = this.dataset.labId;--}}
+
+{{--                // Construct the filename--}}
+{{--                const fileName = `${appointmentId}_${patientId}_${labId}`;--}}
+{{--                //console.log('Generated Filename:', fileName);--}}
+
+
+{{--                // Construct file URL--}}
+{{--                const fileUrl = `/storage/app/public/Claim/${fileName}`;--}}
+
+{{--                // Verify file existence before downloading--}}
+{{--                fetch(fileUrl, { method: 'HEAD' })--}}
+{{--                    .then(response => {--}}
+{{--                        if (response.ok) {--}}
+{{--                            // If file exists, trigger download--}}
+{{--                            const anchor = document.createElement('a');--}}
+{{--                            anchor.href = fileUrl;--}}
+{{--                            anchor.download = fileName;--}}
+{{--                            document.body.appendChild(anchor);--}}
+{{--                            anchor.click();--}}
+{{--                            document.body.removeChild(anchor);--}}
+{{--                        } else {--}}
+{{--                            alert('File not found. Please ensure the file exists.');--}}
+{{--                        }--}}
+{{--                    })--}}
+{{--                    .catch(() => {--}}
+{{--                        alert('An error occurred while fetching the file.');--}}
+{{--                    });--}}
+{{--            });--}}
+{{--        });--}}
+{{--    });--}}
+{{--</script>--}}
 
 
 <footer class="footer mt-4">

@@ -106,7 +106,7 @@ body {
     background-color: #4b0082; /* Change button color */
     border: none; /* Remove border */
     color: white; /* Set text color */
-    padding: 10px 20px; /* Add padding for better aesthetics */
+    //padding: 10px 20px; /* Add padding for better aesthetics */
     font-size: 16px; /* Increase font size */
     cursor: pointer; /* Change cursor to pointer on hover */
     border-radius: 10px; /* Add rounded corners */

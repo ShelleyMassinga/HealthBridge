@@ -70,24 +70,63 @@ class InsuranceController extends Controller
         }
 
         if ($request->action === 'reject') {
-            // Validate the file upload
-            $request->validate([
-                'rejection_file' => 'required|file|mimes:pdf,jpg,png|max:2048', // Restrict file types and size
-            ]);
+            // Get the rejection reason from the request
+            $reason = $request->input('Reason_for_rejection');
 
-            // Store the rejection file
-            $filePath = $request->file('rejection_file')->store('rejection_reasons');
-
-            // Update status to "Rejected" and store the reason file path
-            DB::table('claim')->where('ClaimID', $id)->update([
-                'Approval_status' => 'Rejected',
-                'Reason_for_rejection' => $filePath,
+            // Update status to "Rejected" and store the reason
+            DB::table('claim')->where('ClaimID', $claimId)->update([
+                'Approval_status' => 'Reject',
+                'Reason_for_rejection' => $reason,
             ]);
 
             return redirect()->back()->with('success', 'Claim rejected successfully.');
         }
 
         return redirect()->back()->with('error', 'Invalid action.');
+    }
+
+//    public function downloadFile(Request $request)
+//    {
+//        $request->validate([
+//            'report' => 'required|file|mimes:png,jpg,pdf|max:10240', // Restrict file type and size
+//        ]);
+//
+//        $patientId = $request->input('PatientID');
+//        $labId = $request->input('LabID');
+//        $appointmentId = $request->input('AppointmentID');
+//
+//        // Generate the file name
+//        $fileName = "{$appointmentId}_{$patientId}_{$labId}.pdf" ;
+//
+//        $path = 'Claim/' . $fileName;
+//
+//        if(!Storage::exists($path)) {
+//            return redirect()->back()->with('error', 'File not found.');
+//        }
+//        return response()->download(storage_path('app/' . $path), $fileName);
+//
+//
+//    }
+
+    public function downloadFile(Request $request)
+    {
+        $patientId = $request->input('PatientID');
+        $labId = $request->input('LabID');
+        $appointmentId = $request->input('AppointmentID');
+
+        // Generate the file name
+        $fileName = "{$appointmentId}_{$patientId}_{$labId}.pdf";
+
+        // Path to the file in the 'storage/app/Claim' folder
+        $path = "Claim/{$fileName}";
+
+        // Check if the file exists in the storage
+        if (!Storage::exists($path)) {
+            return redirect()->back()->with('error', 'File not found.');
+        }
+
+        // Use Storage to download the file
+        return Storage::download($path, $fileName);
     }
 
 

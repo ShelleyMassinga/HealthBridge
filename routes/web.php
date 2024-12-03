@@ -77,8 +77,11 @@ Route::prefix('lab')->group(function(){
 Route::prefix('insurance')->group(function () {
     Route::get('/claim', [InsuranceController::class, 'claim_list'])->name('Insurance.claim');
     Route::post('/claim', [InsuranceController::class, 'updateApprovalStatus'])->name('Insurance.claim.update');
+    Route::post('/claim/download', [InsuranceController::class, 'downloadFile'])->name('Insurance.claim.download');
+
 
 });
+
 
 Route::post('/logout', function () {
     // Auth::logout(); commented out for testing
