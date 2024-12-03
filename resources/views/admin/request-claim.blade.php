@@ -35,7 +35,7 @@
                     </div>
                     <button onclick="openClaimModal('{{ $patient->PatientID }}', '{{ $patient->Pt_Name }}')"
                             class="bg-purple-800 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
-                        <span>Send Claim</span>
+                        <span>File Claim</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
