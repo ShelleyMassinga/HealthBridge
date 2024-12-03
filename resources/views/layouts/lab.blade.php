@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {{-- <script src="{{ asset('js/lab.js') }}"></script> --}}
     <link rel="stylesheet" href="{{ asset('css/lab.css') }}">
 </head>
 <body class="bg-gray-50">
@@ -33,10 +34,23 @@
                                 </svg>
                             </button>
                         </div>
-                        <input type="text"
-                               placeholder="Search for..."
-                               class="w-64 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <input type="text" id="searchInput"
+                               placeholder="Search for Patient"
+                               class="w-64 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               onkeyup="searchPatient('{{ $page }}')">
                     </div>
+
+                    <!-- Contact Us -->
+                    <div class="relative flex items-center contact-us-box">
+                        <img src="{{ asset('images/msg.png') }}" alt="Message Icon" class="contact-icon" style="height: 15px;">
+                        <a href="mailto:snehakhan52@gmail.com?subject=Support%20Request&body=Hi%20Team,%0A%0AI%20need%20help%20with..." class="contact-us-text" style="text-decoration: none;">Contact</a>
+                    </div>
+                    {{-- <div class="relative flex items-center contact-us-box" style="display: flex; align-items: center; gap: 5px;">
+                        <a href="mailto:snehakhan52@gmail.com?subject=Support%20Request&body=Hi%20Team,%0A%0AI%20need%20help%20with..." class="contact-us-text" style="display: flex; align-items: center; text-decoration: none;">
+                            <img src="{{ asset('images/msg.png') }}" alt="Message Icon" class="contact-icon" style="height: 15px; margin-right: 5px;">
+                            <span>Contact</span>
+                        </a>
+                    </div> --}}
 
 
                     <!-- Lab Profile -->
@@ -118,8 +132,96 @@
         <div class="flex-1 overflow-x-hidden bg-gray-50">
             <main class="main_content">
                 @yield('content')
+                <script>
+                    function searchPatient(pageN) {
+                        const searchQuery = document.getElementById('searchInput').value;
+
+                        // Send an AJAX request to fetch filtered patient data
+                        $.ajax({
+                            url: "{{ route('Lab.patient_list.search') }}", // Use the same route for both pages
+                            type: "GET",
+                            data: {
+                                query: searchQuery, // Pass the search query
+                                page: pageN,         // Pass the current page
+                            },
+                            success: function (response) {
+                                let tableBody = '';
+
+                                response.forEach(patient => {
+                                    if (pageN === "Patient_list") {
+                                        // Render table for Patient_list
+                                        tableBody += `
+                                        <tr style="color: #3b0764; text-align:center;">
+                                            <td>${patient.Patient_Name}</td>
+                                            <td>${patient.Phone_Number}</td>
+                                            <td>
+                                                ${patient.Test_Status === 'Done' ? `
+                                                    <span class="text-green-500 font-bold">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Done
+                                                    </span>` : `
+                                                    <input type="checkbox" class="status-checkbox" value="${patient.Appointment_ID}" onclick="updateStatus('${patient.Appointment_ID}')">
+                                                `}
+                                            </td>
+                                            <td>${patient.Test_Name}</td>
+                                            <td>${patient.Appointment_Date}</td>
+                                        </tr>
+                                        `;
+                                    } else if (pageN === "Upload_reports") {
+                                        // Render table for Upload_reports
+                                        tableBody += `
+                                            <tr style="color: #3b0764; text-align:center;">
+                                                <td>${patient.Patient_Name}</td>
+                                                <td>${patient.Phone_Number}</td>
+                                                <td>${patient.Test_Name}</td>
+                                                <td>${patient.Appointment_Date}</td>
+                                                <td>
+                                                    <button onclick="openReportModal('${patient.Patient_Name }', '${patient.Patient_ID }', '${patient.Lab_ID }','${patient.Appointment_ID}')"
+                                                        style="margin: auto;"
+                                                        class="bg-purple-800 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
+                                                        <span>Upload</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    } else if (pageN === "Upload_bills") {
+                                        // Render table for Upload_reports
+                                        tableBody += `
+                                            <tr style="color: #3b0764; text-align:center;">
+                                                <td>${patient.Patient_Name }</td>
+                                                <td>${patient.Phone_Number }</td>
+                                                <td>${patient.Test_Name }</td>
+                                                <td>${patient.Appointment_Date }</td>
+                                                <td>
+                                                    <button onclick="openBillModal('${patient.Patient_Name }', '${patient.Patient_ID }', '${patient.Lab_ID}','${patient.Appointment_ID}')"
+                                                        style="margin: auto;"
+                                                        class="bg-purple-800 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
+                                                        <span>Upload</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }
+                                });
+
+                                document.querySelector('tbody').innerHTML = tableBody;
+                            },
+                            error: function (error) {
+                                console.error('Error fetching patient data:', error);
+                            }
+                        });
+                    }
+                </script>
+
             </main>
         </div>
+
+
     </div>
+
+
+
 </body>
 </html>
