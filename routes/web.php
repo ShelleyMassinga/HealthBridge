@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\InsuranceController;
 
 
 
@@ -38,9 +39,13 @@ Route::post('/insurance/dashboard', [LoginController::class, 'login'])->name('lo
 Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
 
 
-//Route::post('/Lab/dashboard', [RegisterController::class, 'register_insurance'])->name('insuranceRegister.submit');
+Route::post('/admin/dashboard', [RegisterController::class, 'register_insurance'])->name('insuranceRegister.submit');
+Route::post('/Lab/dashboard', [RegisterController::class, 'register_lab'])->name('labRegister.submit');
 
-Route::post('/register/insurance', [RegisterController::class, 'register_insurance'])->name('insuranceRegister.submit');
+Route::get('/api/login-ids', function () {
+    // Fetch all the Login_IDs from the credentials table
+    return response()->json(\DB::table('credentials')->pluck('Login_ID'));
+});
 
 
 
@@ -59,8 +64,20 @@ Route::prefix('admin')->group(function () {
 Route::prefix('lab')->group(function(){
     Route::get('/dashboard', [LabController::class, 'dashboard'])->name('Lab.dashboard');
     Route::get('/patient_list', [LabController::class, 'patient_list'])->name('Lab.patient_list');
-    Route::get('/upload_reports', [LabController::class, 'upload_reports'])->name('Lab.upload_reports');
-    Route::get('/upload_bills', [LabController::class, 'upload_bills'])->name('Lab.upload_bills');
+    Route::post('/patient_list', [LabController::class, 'markAsDone'])->name('Lab.patient_list.markAsDone');
+    Route::get('/upload_reports', [LabController::class, 'upload_reports_view'])->name('Lab.upload_reports_view');
+    Route::post('/uploadreports', [LabController::class, 'uploadReport'])->name('upload.report');
+    Route::get('/upload_bills', [LabController::class, 'upload_bills_view'])->name('Lab.upload_bills_view');
+    Route::post('/upload_bills', [LabController::class, 'uploadBill'])->name('upload.bill');
+});
+
+
+
+
+Route::prefix('insurance')->group(function () {
+    Route::get('/claim', [InsuranceController::class, 'claim_list'])->name('Insurance.claim');
+    Route::post('/claim', [InsuranceController::class, 'updateApprovalStatus'])->name('Insurance.claim.update');
+
 });
 
 Route::post('/logout', function () {
