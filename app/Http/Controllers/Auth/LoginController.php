@@ -39,9 +39,9 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         //Validate the form
-        $this-> validate( $request, [
+        $request-> validate([
             'Login_ID' => 'required|string',
-            'Log_Password' => 'required|min:8|max:12',
+            'Log_Password' => 'required|min:8',
         ]);
 
         //Attempt to log the user in
@@ -61,19 +61,33 @@ class LoginController extends Controller
             if($sql)
             {
                 $logged = 'true';
-                Session::put('Login_ID',$logid);
-                Session::put('credential_id', $sql->CredentialID);
-                Session::put('logged_in',$logged);
+                Session::put('Login_ID',$logid); // To hold username/login id
+                Session::put('credential_id', $sql->CredentialID); // To hold CredentialID
+                Session::put('logged_in',$logged); // Logged_in
+                Session::put('user_type',$sql->User_type); // To check the type later
 
+
+                // Here admin -> 0, patient -> 1, lab -> 2, insurance company -> 3
                 switch ($sql->User_type) {
                     case 0:
                         return redirect()->route('admin.dashboard');
                     case 1:
                         return redirect()->route('patient.dashboard');
                     case 2:
-                        return redirect()->route('Lab.dashboard');
+                        $labid = DB::table("Lab")
+                        ->where("CredentialID", $sql->CredentialID)
+                        ->pluck('LabID')
+                        ->first();
+
+                        if ($labid) {
+                            Session::put('lab_id', $labid);
+
+                            return redirect()->route('Lab.dashboard');
+                        } else {
+                            return back()->with('error', 'Lab details not found for this user.');
+                        }
                     case 3:
-                        return redirect()->route('insurance.dashboard');
+                        return redirect()->route('Insurance.dashboard');
                     default:
                         // If user type is not recognized
                         return back()->with('error', 'Invalid user type');
@@ -83,7 +97,7 @@ class LoginController extends Controller
             }
 
         }
-        return view('auth.login')->withInput($request->only('Login_ID'));
+        return view('auth.login')->with($request->only('Login_ID'));
 
     }
 
@@ -91,6 +105,7 @@ class LoginController extends Controller
     public function logout()
     {
         Session::flush();
+        return redirect()->route('login');
     }
 
     /**

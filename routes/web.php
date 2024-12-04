@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\NavigationController;
@@ -45,13 +46,13 @@ Route::post('/Lab/dashboard', [RegisterController::class, 'register_lab'])->name
 
 Route::get('/api/login-ids', function () {
     // Fetch all the Login_IDs from the credentials table
-    return response()->json(\DB::table('credentials')->pluck('Login_ID'));
+    return response()->json(DB::table('credentials')->pluck('Login_ID'));
 });
 
 
 
 Route::get('/', [NavigationController::class, 'home'])->name('home');
-Route::post('/login', [NavigationController::class, 'login'])->name('login');
+// Route::post('/login', [NavigationController::class, 'login'])->name('login');
 Route::get('/signup', [NavigationController::class, 'signup'])->name('signup');
 
 // Route::prefix('admin')->middleware(['auth'])->group(function () { removed middleware for testing
@@ -62,8 +63,12 @@ Route::prefix('admin')->group(function () {
     Route::get('/rejected-claims', [AdminController::class, 'rejectedClaims'])->name('admin.rejected-claims');
 });
 
+// Route::prefix('lab')->middleware(['auth', 'check_user_type:2'])->group(function(){
 Route::prefix('lab')->group(function(){
     Route::get('/dashboard', [LabController::class, 'dashboard'])->name('Lab.dashboard');
+    Route::get('/profile', [LabController::class, 'profile'])->name('Lab.profile');
+    Route::post('/profile', [LabController::class, 'updateTest'])->name('Lab.updateTest');
+    Route::put('/profile', [LabController::class, 'updatePassword'])->name('Lab.updatePassword');
     Route::get('/patient_list', [LabController::class, 'patient_list'])->name('Lab.patient_list');
     Route::post('/patient_list', [LabController::class, 'markAsDone'])->name('Lab.patient_list.markAsDone');
     Route::get('/patient_list/search', [LabController::class, 'searchPatients'])->name('Lab.patient_list.search');
@@ -85,7 +90,4 @@ Route::prefix('insurance')->group(function () {
 });
 
 
-Route::post('/logout', function () {
-    // Auth::logout(); commented out for testing
-    return redirect()->route('login');
-})->name('logout');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

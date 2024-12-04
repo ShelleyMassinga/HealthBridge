@@ -58,8 +58,8 @@
                         {{-- <div class="flex flex-col items-center pointer-events-auto" @click="open = !open"> --}}
                         <div class="flex flex-col items-center pointer-events-auto">
                             <!-- Go to Profile page-->
-                            <a href="#"><img src="{{ asset('images/icon1.png') }}" alt="Lab"></a>
-                            <span class="text-sm text-gray-700">Lab</span>
+                            <a href="{{ route('Lab.profile') }}"><img src="{{ asset('images/icon1.png') }}" alt="Lab"></a>
+                            <a href="{{ route('Lab.profile') }}"><span class="text-sm text-gray-700">{{ $log}}</span></a>
                         </div>
 
                         {{-- <div x-show="open"
