@@ -3,12 +3,9 @@
 @section('content')
 <div class="p-6">
     <div class="max-w-4xl mx-auto">
-        <!-- Search Form -->
         <form action="{{ route('admin.request-claim') }}" method="GET" class="mb-6">
             <div class="relative">
-                <input type="text"
-                       name="search"
-                       value="{{ $search ?? '' }}"
+                <input type="text" name="search" value="{{ $search ?? '' }}"
                        placeholder="Search patients by name..."
                        class="w-full pl-4 pr-10 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-500">
                 <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2">
@@ -19,27 +16,40 @@
             </div>
         </form>
 
-        <!-- Patients List -->
         <div class="space-y-6">
             @forelse($patients as $patient)
             <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-                <div class="p-6 flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                            <span class="text-purple-800 font-bold">{{ substr($patient->Pt_Name, 0, 1) }}</span>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <!-- Patient Info -->
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                <span class="text-purple-800 font-bold">{{ substr($patient->Pt_Name, 0, 1) }}</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">{{ $patient->Pt_Name }}</h3>
+                                <p class="text-sm text-gray-500">Insurance ID: {{ $patient->InsuranceID }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="font-semibold text-lg">{{ $patient->Pt_Name }}</h3>
-                            <p class="text-sm text-gray-500">Insurance ID: {{ $patient->Ins_member_id }}</p>
+
+                        <!-- Actions -->
+                        <div class="flex space-x-3">
+                            @if ($patient->report_file)
+                                <a href="{{ asset('storage/' . $patient->report_file) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                    View Report
+                                </a>
+                            @endif
+                            @if ($patient->bill_file)
+                                <a href="{{ asset('storage/' . $patient->bill_file) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                    View Bill
+                                </a>
+                            @endif
+                            <button onclick="openClaimModal('{{ $patient->PatientID }}', '{{ $patient->Pt_Name }}', '{{ $patient->LabID }}', '{{ $patient->AppointmentID }}', '{{ $patient->InsuranceID }}')"
+                                    class="bg-purple-800 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                                Request Claim
+                            </button>
                         </div>
                     </div>
-                    <button onclick="openClaimModal('{{ $patient->PatientID }}', '{{ $patient->Pt_Name }}')"
-                            class="bg-purple-800 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
-                        <span>File Claim</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </button>
                 </div>
             </div>
             @empty
@@ -50,15 +60,17 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Claim Modal -->
     <div id="claimModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
                 <h2 class="text-xl font-bold mb-4">Submit Claim Request</h2>
-
                 <form action="{{ route('admin.submit-claim') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="patient_id" id="patient_id">
+                    <input type="hidden" name="lab_id" id="lab_id">
+                    <input type="hidden" name="appointment_id" id="appointment_id">
+                    <input type="hidden" name="insurance_id" id="insurance_id">
 
                     <div class="space-y-4">
                         <div>
@@ -81,10 +93,11 @@
                                     <div class="flex text-sm text-gray-600 justify-center">
                                         <label class="relative cursor-pointer bg-white rounded-md font-medium text-purple-800 hover:text-purple-700">
                                             <span>Upload a file</span>
-                                            <input type="file" name="claim_file" class="sr-only">
+                                            <input type="file" name="claim_file" class="sr-only" accept=".png,.jpg,.jpeg,.pdf" onchange="updateFileName(this)">
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
+                                    <p id="selected-file" class="text-sm text-gray-500">No file selected</p>
                                     <p class="text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
                                 </div>
                             </div>
@@ -102,14 +115,23 @@
 </div>
 
 <script>
-    function openClaimModal(patientId, patientName) {
-        document.getElementById('patient_id').value = patientId;
-        document.getElementById('patient_name').value = patientName;
-        document.getElementById('claimModal').classList.remove('hidden');
-    }
+function openClaimModal(patientId, patientName, labId, appointmentId, insuranceId) {
+    document.getElementById('patient_id').value = patientId;
+    document.getElementById('patient_name').value = patientName;
+    document.getElementById('lab_id').value = labId;
+    document.getElementById('appointment_id').value = appointmentId;
+    document.getElementById('insurance_id').value = insuranceId;
+    document.getElementById('selected-file').textContent = 'No file selected';
+    document.getElementById('claimModal').classList.remove('hidden');
+}
 
-    function closeClaimModal() {
-        document.getElementById('claimModal').classList.add('hidden');
-    }
+function closeClaimModal() {
+    document.getElementById('claimModal').classList.add('hidden');
+}
+
+function updateFileName(input) {
+    const fileName = input.files[0]?.name;
+    document.getElementById('selected-file').textContent = fileName || 'No file selected';
+}
 </script>
 @endsection

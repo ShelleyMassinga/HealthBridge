@@ -7,82 +7,125 @@ use App\Models\Claim;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
-        return view('admin.dashboard');
+        $log_bool = Session::get("logged_in");
+        if (!$log_bool) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in again.');
+
+        }
     }
 
     public function requestClaim(Request $request)
-    {
-        try {
+{
+    $log_bool = Session::get("logged_in");
+        if (!$log_bool) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in again.');
 
-            $search = $request->input('search');
-
-            $patients = Patient::search($search)
-                ->select('Patient.*')
-                ->leftJoin('Claim', 'Patient.PatientID', '=', 'Claim.PatientID')
-                ->where(function($query) {
-                    $query->whereNull('Claim.Filing_status')
-                          ->orWhere('Claim.Filing_status', '=', 'Not_filled');
-                })
-                ->orderBy('Patient.Pt_Name')
-                ->get();
-
-            return view('admin.request-claim', compact('patients', 'search'));
-
-        } catch (\Exception $e) {
-            Log::error('Database connection failed: ' . $e->getMessage());
-            return $e->getMessage();
         }
+
+    try {
+        $search = $request->input('search');
+
+        $patients = DB::table('Appointments')
+            ->join('Patient', 'Appointments.PatientID', '=', 'Patient.PatientID')
+            ->leftJoin('Claim', 'Patient.PatientID', '=', 'Claim.PatientID')
+            ->leftJoin('Report', function ($join) {
+                $join->on('Report.PatientID', '=', 'Appointments.PatientID')
+                    ->on('Report.LabID', '=', 'Appointments.LabID');
+            })
+            ->leftJoin('Bill', function ($join) {
+                $join->on('Bill.PatientID', '=', 'Appointments.PatientID')
+                    ->on('Bill.LabID', '=', 'Appointments.LabID');
+            })
+            ->select(
+                'Patient.PatientID',
+                'Patient.Pt_Name',
+                'Patient.InsuranceID',
+                'Appointments.LabID',
+                'Appointments.AppointmentID',
+                'Report.File as report_file',
+                'Bill.File as bill_file'
+            )
+            ->distinct()
+            ->when($search, function ($query, $search) {
+                return $query->where('Patient.Pt_Name', 'LIKE', '%' . $search . '%');
+            })
+            ->orderBy('Patient.Pt_Name')
+            ->get();
+
+        return view('admin.request-claim', ['patients' => $patients, 'search' => $search]);
+    } catch (\Exception $e) {
+        Log::error('Error in requestClaim: ' . $e->getMessage());
+        return back()->with('error', 'Error loading patients');
     }
+}
+
 
     public function submitClaim(Request $request)
     {
+        $log_bool = Session::get("logged_in");
+        if (!$log_bool) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in again.');
+
+        }
+
         $request->validate([
-            'patient_id' => 'required|exists:Patient,PatientID',
-            'claim_details' => 'required|string',
-            'claim_file' => 'required|file|mimes:png,jpg,jpeg,pdf|max:10240'
+            'claim_file' => 'required|file|mimes:png,jpg,jpeg,pdf|max:10240',
+            'patient_id' => 'required|integer',
+            'lab_id' => 'required|integer',
+            'insurance_id' => 'required|integer',
         ]);
 
-        try {
-            if ($request->hasFile('claim_file')) {
-                $file = $request->file('claim_file');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-
-                // $claimsPath = public_path('Claims');
-                // if (!file_exists($claimsPath)) {
-                //     mkdir($claimsPath, 0777, true);
-                // }
-
-                // $file->move($claimsPath, $fileName);
-
-                $patient = Patient::find($request->patient_id);
+        $appointmentId = $request->input('appointment_id');
+        $patientId = $request->input('patient_id');
+        $labId = $request->input('lab_id');
+        $insuranceId = $request->input('insurance_id');
 
 
-                $claim = new Claim();
-                $claim->File = 'Claims/' . $fileName;
-                $claim->Filing_status = 'Filled';
-                $claim->Approval_status = 'None';
-                $claim->PatientID = $request->patient_id;
-                $claim->InsuranceID = $patient->InsuranceID;
-                $claim->LabID = 1; // should I make this dynamic?
-                $claim->save();
+        $credentialId = DB::table('Insurance_Company')
+            ->where('InsuranceID', $insuranceId)
+            ->value('CredentialID');
 
-                return redirect()->back()->with('success', 'Claim submitted successfully');
-            }
+        if (!$credentialId) {
+            return redirect()->back()->with('error', 'Invalid Insurance ID.');
+        }
 
-            return redirect()->back()->with('error', 'No file uploaded');
-        } catch (\Exception $e) {
-            Log::error('Error submitting claim: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error submitting claim: ' . $e->getMessage());
+        // Generate file name
+        $fileName = "{$appointmentId}_{$patientId}_{$labId}." . $request->file('claim_file')->getClientOriginalExtension();
+
+        // Save file
+        $filePath = $request->file('claim_file')->storeAs('Claims', $fileName);
+
+        $user_type = Session::get('user_type');
+        if($user_type == 0){
+        // Insert claim
+            DB::table('Claim')->insert([
+                'File' => str_replace('public/', '', $filePath),
+                'Filing_status' => 'Not_filled',
+                'Approval_status' => 'None',
+                'PatientID' => $patientId,
+                'LabID' => $labId,
+                'InsuranceID' => $credentialId,
+            ]);
+
+            return back()->with('success', 'Claim submitted successfully.');
         }
     }
 
+
     public function submittedClaims()
     {
+        $log_bool = Session::get("logged_in");
+        if (!$log_bool) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in again.');
+
+        }
+
         $claims = Claim::where('Filing_status', 'Filled')
             ->join('Patient', 'Claim.PatientID', '=', 'Patient.PatientID')
             ->select('Claim.*', 'Patient.Pt_Name')
@@ -93,6 +136,11 @@ class AdminController extends Controller
     }
     public function approvedClaims()
     {
+        $log_bool = Session::get("logged_in");
+        if (!$log_bool) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in again.');
+
+        }
         $claims = Claim::where('Approval_status', 'Approved')
             ->join('Patient', 'Claim.PatientID', '=', 'Patient.PatientID')
             ->join('Lab', 'Claim.LabID', '=', 'Lab.LabID')
@@ -105,6 +153,11 @@ class AdminController extends Controller
 
     public function rejectedClaims()
     {
+        $log_bool = Session::get("logged_in");
+        if (!$log_bool) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in again.');
+
+        }
         $claims = Claim::where('Approval_status', 'Reject')
             ->join('Patient', 'Claim.PatientID', '=', 'Patient.PatientID')
             ->join('Lab', 'Claim.LabID', '=', 'Lab.LabID')

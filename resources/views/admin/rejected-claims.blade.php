@@ -25,9 +25,6 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 File
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Action
-                            </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -51,11 +48,6 @@
                                        target="_blank">
                                         View File
                                     </a>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
-                                        Send Error Report
-                                    </button>
                                 </td>
                             </tr>
                         @empty
